@@ -30,14 +30,11 @@ RUN pip install --upgrade pip setuptools wheel \
 
 COPY . .
 
-# 2. 从 pyproject.toml 安装项目依赖（使用 --no-deps-build-variables 避免 PyTorch 被覆写）
-# 如果依赖中包含 flash-attn，安装后强制卸载，让项目退回到标准 SDPA 算子
+# 2. 安装项目基础依赖，并补充 WebUI 所需的 pandas、gradio 等包
 RUN pip install --no-build-isolation -e . \
-    && pip uninstall -y flash-attn || true
     && pip install pandas gradio \
     && pip uninstall -y flash-attn || true
 
 EXPOSE 7870 8002
 
-# 启动 WebUI 界面
 CMD ["python", "webui.py"]
