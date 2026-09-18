@@ -38,4 +38,4 @@ RUN pip install --no-build-isolation -e . \
 EXPOSE 7870 8002
 
 # 启动 WebUI 界面
-CMD ["python", "webui_enhanced.py"]
+CMD ["python", "webui.py"]
