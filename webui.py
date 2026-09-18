@@ -1,16 +1,31 @@
-# --- 动态补丁：解决旧版 transformers 缺失 EncoderDecoderCache 的问题 ---
-try:
-    from transformers.cache_utils import EncoderDecoderCache
-except ImportError:
-    import transformers.cache_utils
-    class EncoderDecoderCache:
-        def __init__(self, *args, **kwargs):
-            pass
-    transformers.cache_utils.EncoderDecoderCache = EncoderDecoderCache
-# -------------------------------------------------------------
+# --- 终极万能补丁：拦截并补全 transformers.cache_utils 中所有缺失的 Cache 类 ---
+import sys
+import types
+import transformers.cache_utils as _cu
+
+# IndexTTS2 可能会从 cache_utils 引入的所有 Cache 类名列表
+MISSING_CACHE_CLASSES = [
+    "EncoderDecoderCache",
+    "OffloadedCache",
+    "QuantizedCache",
+    "StaticCache",
+    "SinkCache",
+    "SlidingWindowCache",
+    "StartEndBlockCache",
+]
+
+for _cls_name in MISSING_CACHE_CLASSES:
+    if not hasattr(_cu, _cls_name):
+        # 动态创建一个通用 dummy 类
+        _dummy_cls = type(_cls_name, (object,), {
+            "__init__": lambda self, *args, **kwargs: None,
+            "update": lambda self, *args, **kwargs: None,
+        })
+        setattr(_cu, _cls_name, _dummy_cls)
+# ----------------------------------------------------------------------
 
 import os
-import sys
+# 后续原有的 webui.py 代码保持不变...
 # 后续原有的 webui.py 代码保持不变...
 import html
 import json
