@@ -1,4 +1,4 @@
-# 使用 CUDA 12.1 开发版作为基础镜像
+# 使用 CUDA 12.1 开发版基础镜像
 FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -24,19 +24,18 @@ WORKDIR /app
 RUN python3.10 -m venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
 
-# 关键修复 1：安装原生支持 Tesla P100 (sm_60) 算力的 PyTorch 2.1.0
+# 1. 先安装适配 Tesla P100 (sm_60) 的 PyTorch 2.1.0 套件
 RUN pip install --upgrade pip setuptools wheel \
     && pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121
 
-COPY requirements.txt .
-
-# 关键修复 2：剔除不支持 P100 的 flash-attn，使用 PyTorch 原生 SDPA 算子
-RUN grep -v "flash-attn" requirements.txt > requirements_p100.txt \
-    && pip install -r requirements_p100.txt
-
 COPY . .
+
+# 2. 从 pyproject.toml 安装项目依赖（使用 --no-deps-build-variables 避免 PyTorch 被覆写）
+# 如果依赖中包含 flash-attn，安装后强制卸载，让项目退回到标准 SDPA 算子
+RUN pip install --no-build-isolation -e . \
+    && pip uninstall -y flash-attn || true
 
 EXPOSE 7870 8002
 
-# 启动脚本
+# 启动 WebUI 界面
 CMD ["python", "webui_enhanced.py"]
