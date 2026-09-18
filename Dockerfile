@@ -27,8 +27,8 @@ RUN python3 -m pip install --upgrade pip setuptools wheel \
 
 COPY . .
 
-# 2. 精确锁定 transformers==4.41.2 (同时满足 EncoderDecoderCache 和 PyTorch 2.1.0 兼容)
-RUN python3 -m pip install "numpy<2.0.0" "transformers==4.41.2" pandas gradio librosa accelerate einops soundfile cn2an pypinyin WeTextProcessing modelscope huggingface_hub omegaconf sentencepiece \
+# 2. 安装基本依赖（使用较稳的 transformers 4.39.3）
+RUN python3 -m pip install "numpy<2.0.0" "transformers>=4.38.0,<4.40.0" pandas gradio librosa accelerate einops soundfile cn2an pypinyin WeTextProcessing modelscope huggingface_hub omegaconf sentencepiece \
     && python3 -m pip install --no-build-isolation --no-deps -e . \
     && python3 -m pip uninstall -y flash-attn || true
 
