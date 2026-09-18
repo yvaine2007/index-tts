@@ -1,3 +1,17 @@
+# --- 动态补丁：解决旧版 transformers 缺失 EncoderDecoderCache 的问题 ---
+try:
+    from transformers.cache_utils import EncoderDecoderCache
+except ImportError:
+    import transformers.cache_utils
+    class EncoderDecoderCache:
+        def __init__(self, *args, **kwargs):
+            pass
+    transformers.cache_utils.EncoderDecoderCache = EncoderDecoderCache
+# -------------------------------------------------------------
+
+import os
+import sys
+# 后续原有的 webui.py 代码保持不变...
 import html
 import json
 import os
