@@ -27,8 +27,8 @@ RUN python3 -m pip install --upgrade pip setuptools wheel \
 
 COPY . .
 
-# 2. 补齐 WebUI 运行及模型自动下载所需的依赖 (加入 modelscope, huggingface_hub, omegaconf, sentencepiece 等)
-RUN python3 -m pip install "numpy<2.0.0" pandas gradio librosa accelerate einops transformers soundfile cn2an pypinyin WeTextProcessing modelscope huggingface_hub omegaconf sentencepiece \
+# 2. 关键修复：指定 transformers<4.40.0 兼容 PyTorch 2.1.0
+RUN python3 -m pip install "numpy<2.0.0" "transformers<4.40.0" pandas gradio librosa accelerate einops soundfile cn2an pypinyin WeTextProcessing modelscope huggingface_hub omegaconf sentencepiece \
     && python3 -m pip install --no-build-isolation --no-deps -e . \
     && python3 -m pip uninstall -y flash-attn || true
 
