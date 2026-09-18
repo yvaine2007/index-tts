@@ -8,7 +8,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 \
     python3-pip \
-    python3.10-venv \
     git \
     ffmpeg \
     libsndfile1 \
@@ -18,22 +17,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# 创建并激活虚拟环境
-RUN python3.10 -m venv /app/.venv
-ENV PATH="/app/.venv/bin:$PATH"
+# 1. 设置 python3 为默认 python
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1 \
+    && update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
 
-# 安装支持 P100 (sm_60) 的 PyTorch 2.1.0
+# 2. 全局强行安装支持 P100 (sm_60) 的 PyTorch 2.1.0
 RUN pip install --upgrade pip setuptools wheel \
     && pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121
 
 COPY . .
 
-# 关键：显式把 gradio, pandas 等 WebUI 必须包一次性装全
+# 3. 全局安装项目依赖以及 pandas/gradio，剔除 flash-attn
 RUN pip install --no-build-isolation -e . \
     && pip install pandas gradio \
     && pip uninstall -y flash-attn || true
 
 EXPOSE 7860
 
-# 明确启动端口为 7860
 CMD ["python", "webui.py", "--host", "0.0.0.0", "--port", "7860"]
