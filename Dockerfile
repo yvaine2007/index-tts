@@ -34,6 +34,8 @@ COPY . .
 # 如果依赖中包含 flash-attn，安装后强制卸载，让项目退回到标准 SDPA 算子
 RUN pip install --no-build-isolation -e . \
     && pip uninstall -y flash-attn || true
+    && pip install pandas gradio \
+    && pip uninstall -y flash-attn || true
 
 EXPOSE 7870 8002
 
